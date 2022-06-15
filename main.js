@@ -10,11 +10,11 @@ class Player {
     constructor() {
         this.pos = {
             x: 100,
-            y: 100
+            y: 100,
         }
         this.velocity = {
             x: 0,
-            y: 1
+            y: 1,
         }
         this.width = 30
         this.height = 30
@@ -38,7 +38,7 @@ class Platform {
     constructor({ x, y }) {
         this.pos = {
             x,
-            y
+            y,
         }
 
         this.width = 200
@@ -52,36 +52,62 @@ class Platform {
 }
 
 const player = new Player()
-const platform = new Platform({ x: 100, y: 200 })
-const platform2 = new Platform({ x: 600, y: 330 })
+const platforms = [new Platform({ x: 100, y: 200 }), new Platform({ x: 500, y: 300 })]
 const keys = {
     right: {
-        pressed: false
+        pressed: false,
     },
     left: {
-        pressed: false
-    }
+        pressed: false,
+    },
 }
+
+let scrollOffset = 0
 
 function animate() {
     requestAnimationFrame(animate)
     gCtx.clearRect(0, 0, gCanvas.width, gCanvas.height)
     player.update()
-    platform.draw()
-    platform2.draw()
-    if (keys.right.pressed) {
+    platforms.forEach((platform) => {
+        platform.draw()
+    })
+    if (keys.right.pressed && player.pos.x < 400) {
         player.velocity.x = 5
-    } else if (keys.left.pressed) {
+    } else if (keys.left.pressed && player.pos.x > 100) {
         player.velocity.x = -5
-    } else player.velocity.x = 0
+    } else {
+        player.velocity.x = 0
+
+        if (keys.right.pressed) {
+            platforms.forEach((platform) => {
+                platform.pos.x -= 5
+                scrollOffset += 5
+            })
+        } else if (keys.left.pressed) {
+            platforms.forEach((platform) => {
+                platform.pos.x += 5
+                scrollOffset -= 5
+            })
+        }
+    }
     //platform collision detaction
-    if (player.pos.y + player.height <= platform.pos.y && player.pos.y + player.height + player.velocity.y >= platform.pos.y && player.pos.x + player.width >= platform.pos.x && player.pos.x + player.width >= platform.pos.x && player.pos.x <= platform.pos.x + platform.width) player.velocity.y = 0
-    if (player.pos.y + player.height <= platform2.pos.y && player.pos.y + player.height + player.velocity.y >= platform2.pos.y && player.pos.x + player.width >= platform2.pos.x && player.pos.x + player.width >= platform2.pos.x && player.pos.x <= platform2.pos.x + platform2.width) player.velocity.y = 0
+    platforms.forEach((platform) => {
+        if (
+            player.pos.y + player.height <= platform.pos.y &&
+            player.pos.y + player.height + player.velocity.y >= platform.pos.y &&
+            player.pos.x + player.width >= platform.pos.x &&
+            player.pos.x + player.width >= platform.pos.x &&
+            player.pos.x <= platform.pos.x + platform.width
+        )
+            player.velocity.y = 0
+    })
+
+    if (scrollOffset > 2000) console.log('you win');
 }
 animate()
 
 addEventListener('keydown', ({ key }) => {
-    console.log('key down', key);
+    console.log('key down', key)
     switch (key) {
         case 'a':
             console.log('left')
@@ -101,7 +127,7 @@ addEventListener('keydown', ({ key }) => {
     }
 })
 addEventListener('keyup', ({ key }) => {
-    console.log('key up', key);
+    console.log('key up', key)
     switch (key) {
         case 'a':
             console.log('left')
@@ -116,7 +142,7 @@ addEventListener('keyup', ({ key }) => {
             break
         case 'w':
             console.log('up')
-            player.velocity.y -= 20
+            player.velocity.y = 0
             break
     }
 })
